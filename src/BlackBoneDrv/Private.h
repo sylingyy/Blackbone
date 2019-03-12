@@ -45,6 +45,8 @@
 #define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH      0x00000002
 #define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER      0x00000004
 
+#define MI_SYSTEM_RANGE_START (ULONG_PTR)(0xFFFF080000000000) // start of system space
+
 #define EX_ADDITIONAL_INFO_SIGNATURE (ULONG_PTR)(-2)
 
 #define KI_USER_SHARED_DATA 0xFFFFF78000000000UI64
@@ -82,6 +84,20 @@
 #ifndef PTE_BASE
 #define PTE_BASE    0xFFFFF68000000000UI64
 #endif
+
+#ifndef _WIN64
+#define KDDEBUGGER_DATA_OFFSET 0x1068
+#else
+#define KDDEBUGGER_DATA_OFFSET 0x2080
+#endif
+
+#ifndef _WIN64
+#define DUMP_BLOCK_SIZE 0x20000
+#else
+#define DUMP_BLOCK_SIZE 0x40000
+#endif
+
+#define PHYSICAL_ADDRESS_BITS 40
 
 #define ObpDecodeGrantedAccess( Access ) \
     ((Access)& ~ObpAccessProtectCloseBit)
@@ -255,6 +271,24 @@ RtlAvlRemoveNode(
     );
 
 #endif
+
+ULONG
+NTAPI
+KeCapturePersistentThreadState(
+    IN PCONTEXT Context,
+    IN PKTHREAD Thread,
+    IN ULONG BugCheckCode,
+    IN ULONG BugCheckParameter1,
+    IN ULONG BugCheckParameter2,
+    IN ULONG BugCheckParameter3,
+    IN ULONG BugCheckParameter4,
+    OUT PVOID VirtualAddress
+);
+
+/// <summary>
+/// Initialize debugger block g_KdBlock
+/// </summary>
+VOID InitializeDebuggerBlock();
 
 /// <summary>
 /// Lookup handle in the process handle table
